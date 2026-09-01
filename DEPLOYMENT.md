@@ -12,15 +12,18 @@ not commit secrets. Environment variables
 
 Use `docker-compose.example.yml` as an external-stack service fragment. It uses
 the published `ghcr.io/toxaris-nl/flashcards:latest` image, mounts
-`./config/flashcards` as the read-only TOML file and `./data/flashcards` at
-`/data`, preserving JSON data across container recreation. Set
+`./config/flashcards` at `/etc/flashcards` and `./data/flashcards` at `/data`,
+preserving JSON data across container recreation. The application uses
+`/etc/flashcards/flashcards.toml` and may create or update it. Set
 `ADMIN_PASSWORD_HASH` and `SESSION_SECRET` in the compose environment before
 starting the service; both override the values saved in TOML. The container
-runs as UID 65532.
+runs as UID 65532, so prepare both mounted directories with that ownership:
 
 ```sh
-sudo chown 65532:65532 config/flashcards
-sudo chmod 600 config/flashcards
+sudo mkdir -p config/flashcards data/flashcards
+sudo chown -R 65532:65532 config/flashcards data/flashcards
+sudo chmod 750 config/flashcards data/flashcards
+sudo chmod 640 config/flashcards/flashcards.toml 2>/dev/null || true
 ```
 
 The container listens on `:8080` and is mapped to host port `9990` by the
