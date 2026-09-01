@@ -10,22 +10,21 @@ the file is missing; replace the default credentials before production use. Do
 not commit secrets. Environment variables
 `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `SESSION_SECRET` override TOML.
 
-Use `docker-compose.example.yml` as an external-stack service fragment. Set
-`FLASHCARDS_IMAGE` to the published, valid lowercase image tag. It mounts the
-TOML file and a host `data` directory at `/data`, preserving JSON data across
-container recreation. The TOML mount must be writable because the admin dashboard
-persists password changes to `admin.password_hash`. The container runs as UID
-65532, so grant that account write access to the host config file, for example:
+Use `docker-compose.example.yml` as an external-stack service fragment. It uses
+the published `ghcr.io/toxaris-nl/flashcards:latest` image, mounts
+`./config/flashcards` as the read-only TOML file and `./data/flashcards` at
+`/data`, preserving JSON data across container recreation. Set
+`ADMIN_PASSWORD_HASH` and `SESSION_SECRET` in the compose environment before
+starting the service; both override the values saved in TOML. The container
+runs as UID 65532.
 
 ```sh
-sudo chown 65532:65532 flashcards.toml
-sudo chmod 600 flashcards.toml
+sudo chown 65532:65532 config/flashcards
+sudo chmod 600 config/flashcards
 ```
 
-When `ADMIN_PASSWORD_HASH` is set as an environment override, change that
-environment value instead; it takes precedence over a password saved to TOML.
-
-The container listens on the configured internal address, normally `:8080`.
+The container listens on `:8080` and is mapped to host port `9990` by the
+example.
 Add its Caddy reverse-proxy route and any network configuration to the existing
 operator-managed stack; this repository contains no Caddy configuration.
 

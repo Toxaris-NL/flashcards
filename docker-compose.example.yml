@@ -1,12 +1,14 @@
 services:
   flashcards:
-    image: ${FLASHCARDS_IMAGE:?set FLASHCARDS_IMAGE to the published image tag}
+    image: ghcr.io/toxaris-nl/flashcards:latest
     container_name: flashcards
     restart: unless-stopped
     volumes:
-      - ./flashcards.toml:/etc/flashcards/flashcards.toml:ro
-      - ./data:/data
+      - ./config/flashcards:/etc/flashcards/flashcards.toml:ro
+      - ./data/flashcards:/data
     environment:
       FLASHCARDS_CONFIG: /etc/flashcards/flashcards.toml
-    expose:
-      - "8080"
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?set ADMIN_PASSWORD_HASH}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET}
+    ports:
+      - "9990:8080"
