@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{index .Labels "topic_editor"}}</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --panel-border: #dfe7f2;
+        --primary: #2d5b8f;
+        --primary-dark: #214775;
+        --text: #1d2a36;
+        --muted: #5c6978;
+        --alert: #a13a3a;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: linear-gradient(180deg, #eef4fb 0%, #f7f9fc 100%);
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+      }
+      body {
+        min-height: 100vh;
+        padding: 1rem;
+      }
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 18px;
+        box-shadow: 0 18px 40px rgba(28, 46, 63, 0.08);
+        padding: clamp(1.25rem, 4vw, 2rem);
+      }
+      h1 {
+        margin: 0 0 1rem;
+        color: var(--primary-dark);
+        font-size: clamp(1.8rem, 5vw, 2.4rem);
+      }
+      .back-link {
+        display: inline-block;
+        margin-bottom: 1rem;
+        color: var(--primary-dark);
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .back-link:hover { text-decoration: underline; }
+      form {
+        display: grid;
+        gap: 1rem;
+      }
+      label {
+        display: grid;
+        gap: 0.35rem;
+        font-weight: 600;
+      }
+      input, select, button {
+        font: inherit;
+      }
+      input, select {
+        width: 100%;
+        padding: 0.72rem 0.8rem;
+        border: 1px solid #cbd8ea;
+        border-radius: 10px;
+        background: white;
+      }
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: 0.82rem 1rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      [data-add-pair], [type="submit"] {
+        background: var(--primary);
+        color: white;
+      }
+      [data-remove-pair], form[action="/student/topics/delete"] button {
+        background: #edf3fb;
+        color: var(--primary-dark);
+      }
+      [data-pairs] {
+        display: grid;
+        gap: 0.75rem;
+      }
+      [data-pair] {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.6rem;
+        padding: 0.9rem;
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        background: #f9fbff;
+      }
+      .import-panel {
+        margin: 1.5rem 0;
+        padding: 1rem;
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        background: #f9fbff;
+      }
+      .import-panel h2 { margin: 0 0 0.75rem; font-size: 1.1rem; }
+      .import-panel p { margin: 0 0 0.75rem; color: var(--muted); }
+      .import-preview { margin: 0.75rem 0 0; }
+      .import-preview ul { margin: 0.5rem 0; padding-left: 1.25rem; }
+      .import-message { margin: 0.75rem 0 0; color: var(--alert); font-weight: 600; }
+      @media (max-width: 640px) {
+        main { border-radius: 14px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back-link" href="/student/sessions/new">Terug naar series</a>
+      <h1>{{index .Labels "topic_editor"}}</h1>
+      <form method="post" action="/student/topics">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <label>{{index .Labels "subject"}} <input name="subject" value="{{if .List}}{{.List.Subject}}{{end}}" required></label>
+        <label>{{index .Labels "period"}} <input name="period" value="{{if .List}}{{.List.Period}}{{end}}" required></label>
+        <label>Zijde A taal <select name="side_a_default_language"><option value="">Geen</option><option value="fr">Frans</option><option value="de">Duits</option><option value="en">Engels</option><option value="nl">Nederlands</option></select></label>
+        <label>Zijde B taal <select name="side_b_default_language"><option value="">Geen</option><option value="fr">Frans</option><option value="de">Duits</option><option value="en">Engels</option><option value="nl">Nederlands</option></select></label>
+        <section data-pairs>
+          {{if .List}}{{range .List.Cards}}<div data-pair><input name="id" type="hidden" value="{{.ID}}"><input name="side_a" value="{{.Front}}"><input name="side_b" value="{{.Back}}"><select name="side_a_language"><option value="">Standaard</option><option value="fr">Frans</option><option value="de">Duits</option><option value="en">Engels</option><option value="nl">Nederlands</option></select><select name="side_b_language"><option value="">Standaard</option><option value="fr">Frans</option><option value="de">Duits</option><option value="en">Engels</option><option value="nl">Nederlands</option></select><button type="button" data-remove-pair>Verwijderen</button></div>{{end}}{{end}}
+        </section>
+        <button type="button" data-add-pair>{{index .Labels "add_pair"}}</button>
+        <button type="submit">{{index .Labels "save"}}</button>
+      </form>
+      <section class="import-panel" data-import-panel>
+        <h2>CSV importeren</h2>
+        <p>Gebruik twee kolommen: voorzijde;achterzijde. De kaarten worden na bevestiging aan deze lijst toegevoegd.</p>
+        <input type="file" accept=".csv,text/csv" data-import-file>
+        <div class="import-preview" data-import-preview hidden></div>
+        <button type="button" data-confirm-import hidden>Import bevestigen</button>
+        <p class="import-message" data-import-message aria-live="polite"></p>
+      </section>
+      {{if .List}}<form method="post" action="/student/topics/delete"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input type="hidden" name="subject" value="{{.List.Subject}}"><input type="hidden" name="period" value="{{.List.Period}}"><button type="submit">{{index .Labels "delete_list"}}</button></form>{{end}}
+    </main>
+    <script src="/static/topic-editor.js"></script>
+  </body>
+</html>

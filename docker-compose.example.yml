@@ -1,0 +1,12 @@
+services:
+  flashcards:
+    image: ${FLASHCARDS_IMAGE:?set FLASHCARDS_IMAGE to the published image tag}
+    container_name: flashcards
+    restart: unless-stopped
+    volumes:
+      - ./flashcards.toml:/etc/flashcards/flashcards.toml:ro
+      - ./data:/data
+    environment:
+      FLASHCARDS_CONFIG: /etc/flashcards/flashcards.toml
+    expose:
+      - "8080"

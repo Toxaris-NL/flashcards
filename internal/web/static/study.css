@@ -1,0 +1,174 @@
+:root {
+  --bg: #f4f7fb;
+  --panel: #ffffff;
+  --panel-border: #dfe7f2;
+  --primary: #2d5b8f;
+  --primary-dark: #214775;
+  --text: #1d2a36;
+  --muted: #5c6978;
+  --shadow: rgba(28, 46, 63, 0.08);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: linear-gradient(180deg, #eef4fb 0%, #f7f9fc 100%);
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.study-card {
+  width: min(38rem, 100%);
+  margin: 0;
+  padding: 0;
+}
+
+.card-side {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  box-shadow: 0 18px 40px var(--shadow);
+  min-height: 16rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  position: relative;
+}
+
+[data-card-text] {
+  font-size: clamp(1.8rem, 5vw, 2.2rem);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.pronunciation-button {
+  background: #edf3fb;
+  border: 1px solid #cbd8ea;
+  border-radius: 10px;
+  bottom: 1rem;
+  cursor: pointer;
+  font-size: 1.25rem;
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+  position: absolute;
+  right: 1rem;
+  color: var(--primary-dark);
+}
+
+.study-session {
+  width: min(42rem, 100%);
+}
+
+.session-header, .session-metrics, .study-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.session-header a {
+  color: var(--primary-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.session-header a:hover { text-decoration: underline; }
+
+.session-metrics {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.session-metrics strong { color: var(--primary-dark); }
+
+.progress-track {
+  height: 0.5rem;
+  margin: 1rem 0 0.5rem;
+  overflow: hidden;
+  border-radius: 0.25rem;
+  background: #dfe7f2;
+}
+
+.progress-value {
+  width: 0;
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.25s ease;
+}
+
+.progress-text { margin: 0 0 1rem; color: var(--muted); font-size: 0.92rem; }
+
+.flashcard-shell { perspective: 1200px; }
+
+.flashcard.is-hidden, .is-hidden { display: none; }
+
+.flashcard-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.55s ease;
+}
+
+.flashcard.is-flipped .flashcard-inner { transform: rotateY(180deg); }
+
+.card-face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+}
+
+.card-back { transform: rotateY(180deg); }
+
+.card-label {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.answer-form {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.answer-form label { font-weight: 700; }
+
+.answer-form input {
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #cbd8ea;
+  border-radius: 10px;
+  font: inherit;
+}
+
+.study-actions { justify-content: flex-start; }
+
+.study-actions button, .primary-link {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.82rem 1rem;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.study-actions .secondary { background: #edf3fb; color: var(--primary-dark); }
+.choice-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
+.choice-button { border: 1px solid #cbd8ea; border-radius: 10px; padding: 0.82rem 1rem; background: #edf3fb; color: var(--primary-dark); cursor: pointer; font: inherit; font-weight: 700; text-align: left; }
+.choice-button.is-correct { background: #dff3e7; border-color: #86cda2; color: #1c6b43; }
+.choice-button.is-incorrect { background: #fde5e5; border-color: #e8a0a0; color: #9c3030; }
+.choice-button:disabled { cursor: default; }
+.feedback { min-height: 1.4rem; margin: 0; color: var(--primary-dark); font-weight: 700; }
+.completion { padding: 2rem; text-align: center; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; box-shadow: 0 18px 40px var(--shadow); }
+
+@media (max-width: 480px) {
+  .session-header { align-items: flex-start; flex-direction: column; }
+  .study-actions { align-items: stretch; flex-direction: column; }
+  .study-actions button { width: 100%; }
+  .choice-list { grid-template-columns: 1fr; }
+}

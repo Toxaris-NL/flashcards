@@ -1,0 +1,14 @@
+# Local configuration and runtime data
+flashcards.toml
+data/*
+!data/.gitkeep
+
+# OpenSpec planning artifacts are local to the development workflow
+openspec/
+
+# Build and local environment files
+/flashcards
+*.exe
+*.test
+.env
+.DS_Store

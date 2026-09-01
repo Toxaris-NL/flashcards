@@ -1,0 +1,16 @@
+# Copy this file to flashcards.toml and replace the placeholder values.
+[server]
+listen_addr = ":8080"
+
+[admin]
+username = "admin"
+# Generate with: htpasswd -bnBC 12 "" "your-password" | tr -d ':\n'
+# This valid example hash is for the password "example-password".
+password_hash = "$2a$10$N0jldfHlXh4e9GUVBZ87behz9gyqu6Pi6W5kMfhx8p001jTQoKA0q"
+session_secret = "replace-with-a-long-random-secret"
+
+[data]
+dir = "/data"
+
+# Environment overrides: SERVER_LISTEN_ADDR, DATA_DIR, ADMIN_USERNAME,
+# ADMIN_PASSWORD_HASH, SESSION_SECRET.

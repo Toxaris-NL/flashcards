@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/study.css">
+    <title>Studiekaart</title>
+  </head>
+  <body>
+    <main class="study-session" data-study-session>
+      <header class="session-header">
+        <a href="/student/sessions/new">Terug naar series</a>
+        <div class="session-metrics" aria-live="polite">
+          <span>Goed <strong data-score>0</strong></span>
+          <span>Nog <strong data-remaining>{{len .Cards}}</strong></span>
+        </div>
+      </header>
+      <div class="progress-track" aria-label="Voortgang"><div class="progress-value" data-progress></div></div>
+      <p class="progress-text"><span data-current>1</span> / {{len .Cards}} kaarten</p>
+      <section class="flashcard-shell" data-flashcard>
+        {{range $index, $card := .Cards}}
+        <article class="flashcard{{if $index}} is-hidden{{end}}" data-card data-card-id="{{$card.ID}}" data-answer="{{$card.Back}}" data-question-mode="{{$card.QuestionMode}}">
+          <div class="flashcard-inner">
+            <section class="card-face card-front" data-card-side data-language="{{$card.FrontLanguage}}">
+              <p class="card-label">Vraag</p>
+              <p data-card-text>{{$card.Front}}</p>
+              {{if $card.IsLanguageCard}}<button id="pronunciation-button" class="pronunciation-button" type="button">&#128266;</button>{{end}}
+            </section>
+            <section class="card-face card-back" data-card-side data-language="{{$card.BackLanguage}}">
+              <p class="card-label">Antwoord</p>
+              <p data-card-text>{{$card.Back}}</p>
+              {{if $card.IsLanguageCard}}<button class="pronunciation-button" type="button">&#128266;</button>{{end}}
+            </section>
+          </div>
+          {{range $card.Choices}}<input data-choice type="hidden" value="{{.}}">{{end}}
+        </article>
+        {{end}}
+      </section>
+      <form class="answer-form" data-answer-form data-subject="{{.Subject}}" data-period="{{.Period}}" data-csrf-token="{{.CSRFToken}}">
+        <div data-typed-answer>
+          <label for="answer">Jouw antwoord</label>
+          <input id="answer" data-answer-input autocomplete="off" required>
+        </div>
+        <div class="choice-list" data-choice-list></div>
+        <div class="study-actions">
+          <button type="button" class="secondary" data-flip>Antwoord tonen</button>
+          <button type="submit" data-check>Controleren</button>
+          <button type="button" class="secondary" data-stop-session>Stoppen</button>
+        </div>
+        <p class="feedback" data-feedback aria-live="polite"></p>
+      </form>
+      <section class="completion is-hidden" data-completion>
+        <h1>Sessie afgerond</h1>
+        <p>Score: <strong data-final-score>0</strong></p>
+        <a class="primary-link" href="/student/sessions/new">Nieuwe serie kiezen</a>
+      </section>
+    </main>
+    <script src="/static/strings-nl.js?v=2"></script>
+    <script src="/static/study-session.js?v=2"></script>
+    <script src="/static/pronunciation.js?v=2"></script>
+  </body>
+</html>

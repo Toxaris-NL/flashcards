@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{index .Labels "admin"}}</title>
+    <style>
+      :root {
+        --primary: #1f6feb;
+        --primary-dark: #143d7a;
+        --surface: #ffffff;
+        --surface-alt: #eef4ff;
+        --text: #1b2430;
+        --muted: #5a6475;
+        --border: #dfe7f5;
+        --danger: #b42318;
+        --shadow: 0 18px 40px rgba(28, 52, 88, 0.12);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #edf5ff 0%, #f5f8ff 100%);
+        color: var(--text);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      main {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 2rem 1rem 3rem;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+      }
+      .eyebrow {
+        color: var(--primary);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 2.8rem);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 1.2rem;
+      }
+      .panel h2 {
+        margin-top: 0;
+        margin-bottom: 0.9rem;
+        font-size: 1.25rem;
+      }
+      .student-list, .progress-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+      .student-item {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.8rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #f8fbff;
+      }
+      .student-item strong {
+        display: block;
+        margin-bottom: 0.2rem;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 0.58rem 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--primary);
+        color: white;
+      }
+      button.secondary {
+        background: var(--surface-alt);
+        color: var(--primary-dark);
+      }
+      button.danger {
+        background: #fef3f2;
+        color: var(--danger);
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        font-weight: 600;
+      }
+      input {
+        padding: 0.72rem 0.8rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 1rem;
+      }
+      input:focus {
+        outline: 2px solid rgba(31, 111, 235, 0.18);
+        border-color: var(--primary);
+      }
+      .message {
+        margin: 0 0 0.9rem;
+        padding: 0.7rem 0.8rem;
+        border-radius: 10px;
+        background: #fef3f2;
+        border: 1px solid #f7c5bf;
+        color: var(--danger);
+        font-weight: 600;
+      }
+      @media (max-width: 600px) {
+        .topbar { flex-direction: column; align-items: flex-start; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="topbar">
+        <div>
+          <div class="eyebrow">Beheer</div>
+          <h1>{{index .Labels "admin"}}</h1>
+        </div>
+      </div>
+      {{if .Error}}<p class="message" role="alert">{{.Error}}</p>{{end}}
+      <div class="grid">
+        <section class="panel">
+          <h2>{{index .Labels "students"}}</h2>
+          <div class="student-list">
+            {{range .Kids}}
+            <div class="student-item">
+              <div>
+                <strong>{{.Username}}</strong>
+                <span>{{.Status}}</span>
+              </div>
+              <div class="actions">
+                <form method="post" action="/admin/kids/{{.ID}}/approve"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><button type="submit" class="secondary">{{index $.Labels "approve"}}</button></form>
+                <form method="post" action="/admin/kids/{{.ID}}/reject"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><button type="submit" class="danger">{{index $.Labels "reject"}}</button></form>
+                <form method="post" action="/admin/kids/{{.ID}}/disable"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><button type="submit" class="secondary">{{index $.Labels "disable"}}</button></form>
+                <form method="post" action="/admin/kids/{{.ID}}/enable"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><button type="submit" class="secondary">{{index $.Labels "enable"}}</button></form>
+                <form method="post" action="/admin/kids/{{.ID}}/reset-pin"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input name="temporary_pin" inputmode="numeric" pattern="[0-9]{6}" placeholder="Tijdelijke pincode" required><button type="submit" class="secondary">Pincode resetten</button></form>
+              </div>
+            </div>
+            {{end}}
+          </div>
+          <form method="post" action="/admin/kids" style="margin-top: 1rem;">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <label>{{index $.Labels "username"}} <input name="username" required></label>
+            <label>{{index $.Labels "pin"}} <input name="pin" inputmode="numeric" pattern="[0-9]{6}" required></label>
+            <button type="submit">{{index $.Labels "create_student"}}</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>{{index .Labels "progress"}}</h2>
+          <div class="progress-list">
+            {{range .Progress}}
+            <div class="student-item">
+              <div>
+                <strong>{{.Username}}</strong>
+                {{if .Subjects}}
+                {{range .Subjects}}
+                <span>{{.Subject}}: {{.CorrectFirstTry}} van {{.CardsSeen}} goed</span>
+                {{end}}
+                {{else}}
+                <span>Nog geen opgeslagen studiesessie</span>
+                {{end}}
+              </div>
+            </div>
+            {{end}}
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>{{index .Labels "settings"}}</h2>
+          <form method="post" action="/admin/settings">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <label>{{index $.Labels "easy"}} <input name="easy" value="{{.Settings.Easy}}"></label>
+            <label>Ok <input name="ok" value="{{.Settings.OK}}"></label>
+            <label>{{index $.Labels "hard"}} <input name="hard" value="{{.Settings.Hard}}"></label>
+            <button type="submit">{{index $.Labels "save"}}</button>
+          </form>
+          <h2 style="margin-top: 1.5rem;">Beheerwachtwoord wijzigen</h2>
+          <form method="post" action="/admin/password">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <label>Huidig wachtwoord <input name="current_password" type="password" required></label>
+            <label>Nieuw wachtwoord <input name="new_password" type="password" minlength="8" required></label>
+            <button type="submit">Wachtwoord wijzigen</button>
+          </form>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
