@@ -6,9 +6,8 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o /out/flashcards ./cmd/flashcards
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian12
 
 COPY --from=build /out/flashcards /flashcards
 EXPOSE 8080
-USER nonroot:nonroot
 ENTRYPOINT ["/flashcards"]
