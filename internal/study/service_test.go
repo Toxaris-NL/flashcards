@@ -305,7 +305,7 @@ func TestSessionSummaryLogsNormalAndEarlyStopSessions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new early session failed: %v", err)
 	}
-	if err := early.GradeCurrent("een", "normalized"); err != nil {
+	if err := early.GradeCurrent(early.Queue[0].Back, "normalized"); err != nil {
 		t.Fatalf("grade early session: %v", err)
 	}
 	earlySummary, ok := early.Summary(time.Now())
