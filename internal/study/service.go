@@ -93,11 +93,13 @@ func NewSessionWithSettings(list List, mode, difficulty string, timerSec int, se
 			return nil, fmt.Errorf("invalid session difficulty")
 		}
 		queue := append([]Card(nil), list.Cards...)
+		shuffleCards(queue)
 		sides := promptSides(queue, false)
 		return &Session{ID: sessionID, Subject: list.Subject, Period: list.Period, StartedAt: startedAt, Mode: "mixed", Difficulty: difficulty, Queue: queue, QuestionModes: mixedQuestionModes(queue, sides, settings.percentage(difficulty)), PromptSides: sides, Progress: Progress{TotalCards: len(list.Cards)}, TimerSec: timerSec}, nil
 	}
 
 	queue := append([]Card(nil), list.Cards...)
+	shuffleCards(queue)
 	return &Session{ID: sessionID, Subject: list.Subject, Period: list.Period, StartedAt: startedAt, Mode: "typed", Queue: queue, QuestionModes: typedQuestionModes(queue), PromptSides: promptSides(queue, false), Progress: Progress{TotalCards: len(list.Cards)}, TimerSec: timerSec}, nil
 }
 
@@ -136,6 +138,7 @@ func NewScheduledSession(list List, mode string, timerSec, completedSessions int
 	for _, cardID := range selectedIDs {
 		session.Queue = append(session.Queue, byID[cardID])
 	}
+	shuffleCards(session.Queue)
 	return session, nil
 }
 
@@ -209,6 +212,12 @@ func (s *Session) Summary(endedAt time.Time) (progress.SessionSummary, bool) {
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+}
+
+func shuffleCards(cards []Card) {
+	rand.Shuffle(len(cards), func(left, right int) {
+		cards[left], cards[right] = cards[right], cards[left]
+	})
 }
 
 func newSessionID() (string, error) {

@@ -33,6 +33,35 @@ func TestMixedModeEnabledForLargerDeck(t *testing.T) {
 	}
 }
 
+func TestNewSessionRandomizesCardOrder(t *testing.T) {
+	cards := make([]Card, 8)
+	for index := range cards {
+		cards[index] = Card{ID: string(rune('a' + index))}
+	}
+
+	first, err := NewSession(List{Cards: cards}, "typed", 0)
+	if err != nil {
+		t.Fatalf("new first session failed: %v", err)
+	}
+	firstOrder := make([]string, len(first.Queue))
+	for index, card := range first.Queue {
+		firstOrder[index] = card.ID
+	}
+
+	for attempt := 0; attempt < 20; attempt++ {
+		other, err := NewSession(List{Cards: cards}, "typed", 0)
+		if err != nil {
+			t.Fatalf("new session failed: %v", err)
+		}
+		for index, card := range other.Queue {
+			if card.ID != firstOrder[index] {
+				return
+			}
+		}
+	}
+	t.Fatalf("session order never changed from %#v", firstOrder)
+}
+
 func TestMixedSessionStoresSelectedDifficulty(t *testing.T) {
 	list := List{Cards: []Card{{ID: "a"}, {ID: "b"}, {ID: "c"}, {ID: "d"}}}
 	session, err := NewSessionWithDifficulty(list, "mixed", "hard", 0)
@@ -153,7 +182,7 @@ func TestScheduledSessionUsesPlainOrderBeforePassThreshold(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new scheduled session failed: %v", err)
 	}
-	if session.Queue[0].ID != "a" || session.Queue[1].ID != "b" {
+	if len(session.Queue) != 2 || !containsCardIDs(session.Queue, "a", "b") {
 		t.Fatalf("unexpected pre-threshold queue: %#v", session.Queue)
 	}
 }
@@ -245,12 +274,27 @@ func TestSessionRecordsAnswerResultsForReviewPersistence(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new session failed: %v", err)
 	}
-	if err := session.GradeCurrent("een", "normalized"); err != nil {
+	firstCardID := session.Queue[0].ID
+	answer := session.Queue[0].Back
+	if err := session.GradeCurrent(answer, "normalized"); err != nil {
 		t.Fatalf("grade failed: %v", err)
 	}
-	if len(session.Results) != 1 || !session.Results[0].Correct || session.Results[0].CardID != "a" {
+	if len(session.Results) != 1 || !session.Results[0].Correct || session.Results[0].CardID != firstCardID {
 		t.Fatalf("results = %#v", session.Results)
 	}
+}
+
+func containsCardIDs(cards []Card, wanted ...string) bool {
+	seen := make(map[string]bool, len(cards))
+	for _, card := range cards {
+		seen[card.ID] = true
+	}
+	for _, cardID := range wanted {
+		if !seen[cardID] {
+			return false
+		}
+	}
+	return true
 }
 
 func TestSessionSummaryLogsNormalAndEarlyStopSessions(t *testing.T) {

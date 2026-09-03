@@ -4,7 +4,7 @@ services:
     container_name: flashcards
     restart: unless-stopped
     volumes:
-      - ./config/flashcards:/etc/flashcards/flashcards.toml:ro
+      - ./config/flashcards:/etc/flashcards
       - ./data/flashcards:/data
     environment:
       FLASHCARDS_CONFIG: /etc/flashcards/flashcards.toml

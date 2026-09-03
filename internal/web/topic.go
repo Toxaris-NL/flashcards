@@ -25,6 +25,19 @@ type TopicDependencies struct {
 	Progress *progress.Store
 }
 
+func studySessionCardForPrompt(card content.Card, list *content.List, promptSide string, subjectIsLanguage bool) StudySessionCard {
+	frontLanguage := content.EffectiveSideLanguage(card, list, "a")
+	backLanguage := content.EffectiveSideLanguage(card, list, "b")
+	if frontLanguage == "" && subjectIsLanguage {
+		frontLanguage, _ = content.LanguageCode(list.Subject)
+	}
+	if promptSide == "b" {
+		card.Front, card.Back = card.Back, card.Front
+		frontLanguage, backLanguage = backLanguage, frontLanguage
+	}
+	return StudySessionCard{ID: card.ID, Front: card.Front, Back: card.Back, IsLanguageCard: card.IsLanguageCard || subjectIsLanguage || frontLanguage != "" || backLanguage != "", FrontLanguage: frontLanguage, BackLanguage: backLanguage}
+}
+
 // NewTopicHandler serves kid-owned topic editor pages.
 func NewTopicHandler(dependencies TopicDependencies) http.Handler {
 	router := chi.NewRouter()
@@ -105,17 +118,9 @@ func NewTopicHandler(dependencies TopicDependencies) http.Handler {
 						break
 					}
 				}
-				frontLanguage := content.EffectiveSideLanguage(card, list, "a")
-				backLanguage := content.EffectiveSideLanguage(card, list, "b")
 				_, subjectIsLanguage := content.LanguageCode(list.Subject)
-				if frontLanguage == "" && subjectIsLanguage {
-					frontLanguage, _ = content.LanguageCode(list.Subject)
-				}
-				if studySession.PromptSides[card.ID] == "b" {
-					card.Front, card.Back = card.Back, card.Front
-					frontLanguage, backLanguage = backLanguage, frontLanguage
-				}
-				studyCard := StudySessionCard{ID: card.ID, Front: card.Front, Back: card.Back, IsLanguageCard: card.IsLanguageCard || subjectIsLanguage || frontLanguage != "" || backLanguage != "", FrontLanguage: frontLanguage, BackLanguage: backLanguage, QuestionMode: studySession.QuestionModes[card.ID]}
+				studyCard := studySessionCardForPrompt(card, list, studySession.PromptSides[card.ID], subjectIsLanguage)
+				studyCard.QuestionMode = studySession.QuestionModes[card.ID]
 				if studyCard.QuestionMode == "multiple_choice" {
 					studyCard.Choices = multipleChoiceAnswers(sessionCard, cards, studySession.PromptSides[card.ID])
 				}
@@ -123,6 +128,7 @@ func NewTopicHandler(dependencies TopicDependencies) http.Handler {
 			}
 			renderStudyCard(response, StudyCard{Subject: list.Subject, Period: list.Period, CSRFToken: session.CSRFToken, Cards: studyCards})
 		})
+
 		protected.Post("/student/study/complete", kidCSRFHandler(dependencies.Sessions, func(response http.ResponseWriter, request *http.Request, session auth.KidSession) {
 			cardsSeen, correctFirstTry, totalAttempts, err := studyCompletionFromRequest(request)
 			if err != nil {
@@ -275,11 +281,9 @@ func NewTopicHandler(dependencies TopicDependencies) http.Handler {
 				return
 			}
 			card := list.Cards[0]
-			if studySession.PromptSides[card.ID] == "b" {
-				card.Front, card.Back = card.Back, card.Front
-				card.SideALanguage, card.SideBLanguage = content.EffectiveSideLanguage(card, list, "b"), content.EffectiveSideLanguage(card, list, "a")
-			}
-			renderStudyCard(response, StudyCard{Front: card.Front, Back: card.Back, IsLanguageCard: content.EffectiveSideLanguage(card, list, "a") != "" || content.EffectiveSideLanguage(card, list, "b") != "", FrontLanguage: content.EffectiveSideLanguage(card, list, "a"), BackLanguage: content.EffectiveSideLanguage(card, list, "b")})
+			_, subjectIsLanguage := content.LanguageCode(list.Subject)
+			studyCard := studySessionCardForPrompt(card, list, studySession.PromptSides[card.ID], subjectIsLanguage)
+			renderStudyCard(response, StudyCard{Subject: list.Subject, Period: list.Period, Front: studyCard.Front, Back: studyCard.Back, IsLanguageCard: studyCard.IsLanguageCard, FrontLanguage: studyCard.FrontLanguage, BackLanguage: studyCard.BackLanguage})
 		})
 		protected.Get("/kid/topics/edit", func(response http.ResponseWriter, request *http.Request) {
 			session, _ := dependencies.Sessions.Authenticate(request)

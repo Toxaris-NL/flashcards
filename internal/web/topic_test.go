@@ -13,6 +13,19 @@ import (
 	"flashcards/internal/review"
 )
 
+func TestStudySessionCardForPromptKeepsLanguagesWithDisplayedSides(t *testing.T) {
+	list := &content.List{Subject: "Frans", SideADefaultLanguage: "fr", SideBDefaultLanguage: "nl"}
+	card := content.Card{ID: "pair-1", Front: "bonjour", Back: "goedendag"}
+
+	got := studySessionCardForPrompt(card, list, "b", true)
+	if got.Front != "goedendag" || got.Back != "bonjour" {
+		t.Fatalf("displayed card = %#v", got)
+	}
+	if got.FrontLanguage != "nl" || got.BackLanguage != "fr" {
+		t.Fatalf("displayed languages = %q/%q, want nl/fr", got.FrontLanguage, got.BackLanguage)
+	}
+}
+
 func TestTopicHandlerRendersCreateAndEditPagesForAuthenticatedKid(t *testing.T) {
 	contentService := content.NewService(t.TempDir())
 	if err := contentService.SaveList("kid-1", content.List{Subject: "Frans", Period: "Hoofdstuk 4", Cards: []content.Card{{Front: "bonjour", Back: "goedendag"}}}); err != nil {
@@ -30,6 +43,37 @@ func TestTopicHandlerRendersCreateAndEditPagesForAuthenticatedKid(t *testing.T) 
 		}
 		if !strings.Contains(response.Body.String(), `href="/student/sessions/new"`) {
 			t.Fatalf("%s does not link back to the series selection screen", target)
+		}
+	}
+}
+
+func TestTopicEditorPreservesSelectedLanguages(t *testing.T) {
+	contentService := content.NewService(t.TempDir())
+	list := content.List{
+		Subject:              "Frans",
+		Period:               "Hoofdstuk 4",
+		SideADefaultLanguage: "fr",
+		SideBDefaultLanguage: "nl",
+		Cards:                []content.Card{{ID: "pair-1", Front: "bonjour", Back: "goedendag", SideALanguage: "de", SideBLanguage: "en"}},
+	}
+	if err := contentService.SaveList("kid-1", list); err != nil {
+		t.Fatalf("save list: %v", err)
+	}
+	handler := NewTopicHandler(TopicDependencies{Sessions: kidSessions(t), Content: contentService})
+	cookie, _ := topicKidLogin(t, handler)
+	request := httptest.NewRequest(http.MethodGet, "/student/topics/edit?subject=Frans&period=Hoofdstuk+4", nil)
+	request.AddCookie(cookie)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	body := response.Body.String()
+	for _, expected := range []string{
+		`<option value="fr" selected>Frans</option>`,
+		`<option value="nl" selected>Nederlands</option>`,
+		`<option value="de" selected>Duits</option>`,
+		`<option value="en" selected>Engels</option>`,
+	} {
+		if response.Code != http.StatusOK || !strings.Contains(body, expected) {
+			t.Fatalf("editor response missing %q: %d %s", expected, response.Code, body)
 		}
 	}
 }

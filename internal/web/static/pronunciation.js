@@ -33,8 +33,14 @@
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       if (side.dataset.language) {
-        utterance.lang = side.dataset.language;
-        utterance.voice = voices.find((voice) => voice.lang.toLowerCase().startsWith(utterance.lang)) || null;
+        utterance.lang = side.dataset.language.toLowerCase();
+        const voice = voices.find((candidate) => {
+          const voiceLanguage = candidate.lang.toLowerCase();
+          return voiceLanguage === utterance.lang || voiceLanguage.startsWith(`${utterance.lang}-`) || utterance.lang.startsWith(`${voiceLanguage}-`);
+        });
+        if (voice) {
+          utterance.voice = voice;
+        }
       }
       activeButton = button;
       button.disabled = true;
