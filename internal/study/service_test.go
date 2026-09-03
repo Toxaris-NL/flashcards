@@ -260,7 +260,7 @@ func TestProgressTracksCorrectAnswerWithoutCardConfidence(t *testing.T) {
 		t.Fatalf("new session failed: %v", err)
 	}
 
-	if err := session.GradeCurrent("een", "typed"); err != nil {
+	if err := session.GradeCurrent(session.Queue[0].Back, "typed"); err != nil {
 		t.Fatalf("grade failed: %v", err)
 	}
 	if session.Progress.TotalCorrect != 1 {
